@@ -21,6 +21,7 @@ import androidx.camera.core.ImageProxy;
 import android.view.View;
 import android.view.Surface;
 import android.util.Log;
+import android.graphics.Bitmap;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -28,6 +29,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.concurrent.ExecutionException;
+
+import com.starrylit.ImageUtils;
 
 public class CameraModule extends ReactContextBaseJavaModule {
     private static final int REQUEST_CODE_PERMISSIONS = 10;
@@ -94,17 +97,18 @@ public class CameraModule extends ReactContextBaseJavaModule {
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
         //帧处理过程
         ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                // .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                 .setTargetResolution(new Size(1280, 720))
-                .setOutputImageRotationEnabled(true)
-                .setTargetRotation(Surface.ROTATION_0)
+                // .setOutputImageRotationEnabled(true)
+                // .setTargetRotation(Surface.ROTATION_0)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build();
         //在本例中采用的主线程池，后续有待优化
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(activity), new ImageAnalysis.Analyzer() {
             @Override
             public void analyze(ImageProxy imageProxy) {
-
+                //完成图片分析函数
+                ImageUtils.imageProxyToTensor(imageProxy);
                 imageProxy.close();
             }
         });
