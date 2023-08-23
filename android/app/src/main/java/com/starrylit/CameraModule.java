@@ -22,16 +22,27 @@ import android.view.View;
 import android.view.Surface;
 import android.util.Log;
 import android.graphics.Bitmap;
-
+import android.content.Context;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.google.common.util.concurrent.ListenableFuture;
-
+import org.tensorflow.lite.task.vision.segmenter.ImageSegmenter;
+import org.tensorflow.lite.task.vision.segmenter.Segmentation;
+import org.tensorflow.lite.task.vision.segmenter.OutputType;
+import org.tensorflow.lite.task.core.BaseOptions;
+import org.tensorflow.lite.DataType;
+import org.tensorflow.lite.support.image.ImageProcessor;
+import org.tensorflow.lite.support.image.TensorImage;
+import org.tensorflow.lite.support.image.ops.ResizeOp;
+import org.tensorflow.lite.gpu.CompatibilityList;
 import java.util.concurrent.ExecutionException;
-
+import java.util.*;
 import com.starrylit.ImageUtils;
-
+import android.media.Image;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 public class CameraModule extends ReactContextBaseJavaModule {
     private static final int REQUEST_CODE_PERMISSIONS = 10;
     private static final String[] REQUIRED_PERMISSIONS = new String[] { Manifest.permission.CAMERA };
@@ -74,45 +85,74 @@ public class CameraModule extends ReactContextBaseJavaModule {
     }
 
     private void bindPreview(@NonNull ProcessCameraProvider cameraProvider, AppCompatActivity activity) {
-        Preview preview = new Preview.Builder()
-                .build();
+        try {
+            // Create an ImageSegmenterOptions object.
+            Context context = activity.getApplicationContext();
+            CompatibilityList compatibilityList = new CompatibilityList();
+            Log.d("GPU Available", compatibilityList.isDelegateSupportedOnThisDevice() ? "true" : "false");
+            ImageSegmenter.ImageSegmenterOptions options = ImageSegmenter.ImageSegmenterOptions.builder()
+                    .setBaseOptions(BaseOptions.builder().setNumThreads(3).build())
+                    .setOutputType(OutputType.CONFIDENCE_MASK)
+                    .build();
+            ImageSegmenter imageSegmenter = ImageSegmenter.createFromFileAndOptions(context,
+                    "model1.tflite", options);
+            ImageProcessor imageProcessor = new ImageProcessor.Builder()
+                    .add(new ResizeOp(513, 513, ResizeOp.ResizeMethod.BILINEAR))
+                    .build();
+            TensorImage tensorImage = new TensorImage(DataType.FLOAT32);
+            // 源代码
+            Preview preview = new Preview.Builder()
+                    .build();
 
-        CameraSelector cameraSelector = new CameraSelector.Builder()
-                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-                .build();
+            CameraSelector cameraSelector = new CameraSelector.Builder()
+                    .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                    .build();
 
-        ViewGroup container = activity.findViewById(android.R.id.content);
-        container.removeAllViews();
+            ViewGroup container = activity.findViewById(android.R.id.content);
+            container.removeAllViews();
 
-        FrameLayout frameLayout = new FrameLayout(activity);
-        frameLayout.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT));
-        container.addView(frameLayout);
+            FrameLayout frameLayout = new FrameLayout(activity);
+            frameLayout.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT));
+            container.addView(frameLayout);
 
-        PreviewView previewView = new PreviewView(activity);
-        previewView.setLayoutParams(
-                new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        frameLayout.addView(previewView);
+            PreviewView previewView = new PreviewView(activity);
+            previewView.setLayoutParams(
+                    new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT));
+            frameLayout.addView(previewView);
 
-        preview.setSurfaceProvider(previewView.getSurfaceProvider());
-        //帧处理过程
-        ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                // .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                .setTargetResolution(new Size(1280, 720))
-                // .setOutputImageRotationEnabled(true)
-                // .setTargetRotation(Surface.ROTATION_0)
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build();
-        //在本例中采用的主线程池，后续有待优化
-        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(activity), new ImageAnalysis.Analyzer() {
-            @Override
-            public void analyze(ImageProxy imageProxy) {
-                //完成图片分析函数
-                ImageUtils.imageProxyToTensor(imageProxy);
-                imageProxy.close();
-            }
-        });
-        Camera camera = cameraProvider.bindToLifecycle(activity, cameraSelector,imageAnalysis, preview);
+            preview.setSurfaceProvider(previewView.getSurfaceProvider());
+            // 帧处理过程
+            ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+                    // .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                    .setTargetResolution(new Size(1280, 720))
+                    // .setOutputImageRotationEnabled(true)
+                    // .setTargetRotation(Surface.ROTATION_0)
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build();
+            // 在本例中采用的主线程池，后续有待优化
+            ExecutorService executorService = Executors.newFixedThreadPool(3);
+
+            imageAnalysis.setAnalyzer(executorService, new ImageAnalysis.Analyzer() {
+                @Override
+                public void analyze(ImageProxy imageProxy) {
+                    // 完成图片分析函数
+                    Image mediaImage = imageProxy.getImage();
+                    Bitmap bitmap = ImageUtils.imageProxyToBitmap(mediaImage);
+                    tensorImage.load(bitmap);
+                    TensorImage tensorImage_ = imageProcessor.process(tensorImage);
+                    Log.d("FrameProcess", "开始预测...");
+                    List<Segmentation> results = imageSegmenter.segment(tensorImage_);
+                    Log.d("FrameProcess", "预测完毕");
+                    imageProxy.close();
+                }
+            });
+            Camera camera = cameraProvider.bindToLifecycle(activity, cameraSelector, imageAnalysis, preview);
+        } catch (Exception e) {
+            // 打印错误信息
+            Log.e("CameraModule", e.toString());
+        }
     }
 
     private boolean allPermissionsGranted(AppCompatActivity activity) {

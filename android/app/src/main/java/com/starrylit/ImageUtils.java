@@ -13,14 +13,16 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
 public class ImageUtils {
-    public static float[][][][] imageProxyToTensor(ImageProxy imageProxy) {
-        Bitmap bitmap = imageProxyToBitmap(imageProxy);
-        bitmap = Bitmap.createScaledBitmap(bitmap, 512, 512, true);
-        return bitmapToTensor(bitmap);
-    }
+    
+    
+    // public static float[][][][] imageProxyToTensor(ImageProxy imageProxy) {
+    //     Bitmap bitmap = imageProxyToBitmap(imageProxy);
+    //     bitmap = Bitmap.createScaledBitmap(bitmap, 512, 512, true);
+    //     return bitmapToTensor(bitmap);
+    // }
 
-    private static Bitmap imageProxyToBitmap(ImageProxy image) {
-        ImageProxy.PlaneProxy[] planes = image.getPlanes();
+    public static Bitmap imageProxyToBitmap(Image image) {
+        Image.Plane[] planes = image.getPlanes();
         ByteBuffer yBuffer = planes[0].getBuffer();
         ByteBuffer uBuffer = planes[1].getBuffer();
         ByteBuffer vBuffer = planes[2].getBuffer();
