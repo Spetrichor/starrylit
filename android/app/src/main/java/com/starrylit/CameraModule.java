@@ -91,11 +91,11 @@ public class CameraModule extends ReactContextBaseJavaModule {
             CompatibilityList compatibilityList = new CompatibilityList();
             Log.d("GPU Available", compatibilityList.isDelegateSupportedOnThisDevice() ? "true" : "false");
             ImageSegmenter.ImageSegmenterOptions options = ImageSegmenter.ImageSegmenterOptions.builder()
-                    .setBaseOptions(BaseOptions.builder().setNumThreads(3).build())
+                    .setBaseOptions(BaseOptions.builder().setNumThreads(8).build())
                     .setOutputType(OutputType.CONFIDENCE_MASK)
                     .build();
             ImageSegmenter imageSegmenter = ImageSegmenter.createFromFileAndOptions(context,
-                    "model1.tflite", options);
+                    "lite-model_deeplabv3-mobilenetv2-ade20k_1_default_2.tflite", options);
             ImageProcessor imageProcessor = new ImageProcessor.Builder()
                     .add(new ResizeOp(513, 513, ResizeOp.ResizeMethod.BILINEAR))
                     .build();
@@ -131,13 +131,13 @@ public class CameraModule extends ReactContextBaseJavaModule {
                     // .setTargetRotation(Surface.ROTATION_0)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build();
-            // 在本例中采用的主线程池，后续有待优化
-            ExecutorService executorService = Executors.newFixedThreadPool(3);
+            ExecutorService executorService = Executors.newFixedThreadPool(4);
 
             imageAnalysis.setAnalyzer(executorService, new ImageAnalysis.Analyzer() {
                 @Override
                 public void analyze(ImageProxy imageProxy) {
                     // 完成图片分析函数
+                    Log.d("FrameProcess", "获取帧");
                     Image mediaImage = imageProxy.getImage();
                     Bitmap bitmap = ImageUtils.imageProxyToBitmap(mediaImage);
                     tensorImage.load(bitmap);
