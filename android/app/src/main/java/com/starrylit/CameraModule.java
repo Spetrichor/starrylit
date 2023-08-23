@@ -16,7 +16,12 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.camera.view.PreviewView;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageProxy;
 import android.view.View;
+import android.view.Surface;
+import android.util.Log;
+
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -87,8 +92,23 @@ public class CameraModule extends ReactContextBaseJavaModule {
         frameLayout.addView(previewView);
 
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
+        //帧处理过程
+        ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                .setTargetResolution(new Size(1280, 720))
+                .setOutputImageRotationEnabled(true)
+                .setTargetRotation(Surface.ROTATION_0)
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build();
+        //在本例中采用的主线程池，后续有待优化
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(activity), new ImageAnalysis.Analyzer() {
+            @Override
+            public void analyze(ImageProxy imageProxy) {
 
-        Camera camera = cameraProvider.bindToLifecycle(activity, cameraSelector, preview);
+                imageProxy.close();
+            }
+        });
+        Camera camera = cameraProvider.bindToLifecycle(activity, cameraSelector,imageAnalysis, preview);
     }
 
     private boolean allPermissionsGranted(AppCompatActivity activity) {
