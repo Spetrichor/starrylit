@@ -38,7 +38,6 @@ import org.tensorflow.lite.support.image.ops.ResizeOp;
 import org.tensorflow.lite.gpu.CompatibilityList;
 import java.util.concurrent.ExecutionException;
 import java.util.*;
-import com.starrylit.ImageUtils;
 import com.starrylit.RegionProcess;
 import com.starrylit.ColorLabel;
 import com.starrylit.OverlayView;
