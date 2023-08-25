@@ -39,10 +39,16 @@ import org.tensorflow.lite.gpu.CompatibilityList;
 import java.util.concurrent.ExecutionException;
 import java.util.*;
 import com.starrylit.ImageUtils;
+import com.starrylit.RegionProcess;
+import com.starrylit.ColorLabel;
+import com.starrylit.OverlayView;
 import android.media.Image;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.util.DisplayMetrics;
+import android.view.WindowManager;
+
 public class CameraModule extends ReactContextBaseJavaModule {
     private static final int REQUEST_CODE_PERMISSIONS = 10;
     private static final String[] REQUIRED_PERMISSIONS = new String[] { Manifest.permission.CAMERA };
@@ -90,9 +96,20 @@ public class CameraModule extends ReactContextBaseJavaModule {
             Context context = activity.getApplicationContext();
             CompatibilityList compatibilityList = new CompatibilityList();
             Log.d("GPU Available", compatibilityList.isDelegateSupportedOnThisDevice() ? "true" : "false");
+            // 获取屏幕宽高
+            WindowManager wm = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
+            DisplayMetrics metrics = new DisplayMetrics();
+            wm.getDefaultDisplay().getMetrics(metrics);
+            int mScreenHeight = metrics.heightPixels;
+            int mScreenWidth = metrics.widthPixels;
+            // 获取完毕
+            // 创建新视图
+            OverlayView overlayView = new OverlayView(context);
+
+            // 模型预测代码
             ImageSegmenter.ImageSegmenterOptions options = ImageSegmenter.ImageSegmenterOptions.builder()
                     .setBaseOptions(BaseOptions.builder().setNumThreads(8).build())
-                    .setOutputType(OutputType.CONFIDENCE_MASK)
+                    .setOutputType(OutputType.CATEGORY_MASK)
                     .build();
             ImageSegmenter imageSegmenter = ImageSegmenter.createFromFileAndOptions(context,
                     "lite-model_deeplabv3-mobilenetv2-ade20k_1_default_2.tflite", options);
@@ -115,20 +132,25 @@ public class CameraModule extends ReactContextBaseJavaModule {
             frameLayout.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.MATCH_PARENT));
             container.addView(frameLayout);
-
             PreviewView previewView = new PreviewView(activity);
             previewView.setLayoutParams(
                     new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT));
             frameLayout.addView(previewView);
-
+            // 绘制OverlayView视图
+            overlayView.setLayoutParams(
+                    new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT));
+            frameLayout.addView(overlayView);
+            // overlayView.setAlpha(0.5f);
             preview.setSurfaceProvider(previewView.getSurfaceProvider());
+
             // 帧处理过程
             ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
                     // .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                     .setTargetResolution(new Size(1280, 720))
-                    // .setOutputImageRotationEnabled(true)
-                    // .setTargetRotation(Surface.ROTATION_0)
+                    .setOutputImageRotationEnabled(true)
+                    .setTargetRotation(Surface.ROTATION_0)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build();
             ExecutorService executorService = Executors.newFixedThreadPool(4);
@@ -137,13 +159,13 @@ public class CameraModule extends ReactContextBaseJavaModule {
                 @Override
                 public void analyze(ImageProxy imageProxy) {
                     // 完成图片分析函数
-                    Log.d("FrameProcess", "获取帧");
                     Image mediaImage = imageProxy.getImage();
                     Bitmap bitmap = ImageUtils.imageProxyToBitmap(mediaImage);
                     tensorImage.load(bitmap);
                     TensorImage tensorImage_ = imageProcessor.process(tensorImage);
                     Log.d("FrameProcess", "开始预测...");
                     List<Segmentation> results = imageSegmenter.segment(tensorImage_);
+                    overlayView.setBitmap(RegionProcess.getMask(results, mScreenWidth, mScreenHeight));
                     Log.d("FrameProcess", "预测完毕");
                     imageProxy.close();
                 }
