@@ -63,7 +63,7 @@ public class RegionProcess {
             } else {
                 color = Color.BLACK;
             }
-            colorLabels.add(new ColorLabel(i, coloredLabel.getlabel(), coloredLabel.getArgb()));
+            colorLabels.add(new ColorLabel(i, coloredLabel.getlabel(), color));
         }
         TensorImage maskTensor = results.get(0).getMasks().get(0);
         byte[] maskArray = maskTensor.getBuffer().array();
@@ -81,12 +81,13 @@ public class RegionProcess {
                 maskTensor.getHeight(),
                 Bitmap.Config.ARGB_8888);
         // 创建一个新的Bitmap并调整大小
-        // 添加种类过滤器
         float scaleFactor = Math.max(mScreenWidth * 1f / image.getWidth(), mScreenHeight * 1f / image.getHeight());
         int scaleWidth = (int) (image.getWidth() * scaleFactor);
         int scaleHeight = (int) (image.getHeight() * scaleFactor);
 
         Bitmap scaleBitmap = Bitmap.createScaledBitmap(image, scaleWidth, scaleHeight, false);
-        return scaleBitmap;
+        Bitmap croppedBitmap = Bitmap.createBitmap(scaleBitmap, (scaleWidth - mScreenWidth) / 2,
+                (scaleHeight - mScreenHeight) / 2, mScreenWidth, mScreenHeight);
+        return croppedBitmap;
     }
 }

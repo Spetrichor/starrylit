@@ -23,7 +23,6 @@ public class OverlayView extends View {
         super.onDraw(canvas);
         if (bitmap != null) {
             canvas.drawBitmap(bitmap, 0f, 0f, null);
-            Log.d("FrameProcess","绘制完毕");
         }
     }
 }

@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.util.Size;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-
+import androidx.appcompat.app.ActionBar;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
@@ -108,7 +108,7 @@ public class CameraModule extends ReactContextBaseJavaModule {
 
             // 模型预测代码
             ImageSegmenter.ImageSegmenterOptions options = ImageSegmenter.ImageSegmenterOptions.builder()
-                    .setBaseOptions(BaseOptions.builder().setNumThreads(8).build())
+                    .setBaseOptions(BaseOptions.builder().setNumThreads(4).build())
                     .setOutputType(OutputType.CATEGORY_MASK)
                     .build();
             ImageSegmenter imageSegmenter = ImageSegmenter.createFromFileAndOptions(context,
@@ -159,8 +159,9 @@ public class CameraModule extends ReactContextBaseJavaModule {
                 @Override
                 public void analyze(ImageProxy imageProxy) {
                     // 完成图片分析函数
-                    Image mediaImage = imageProxy.getImage();
-                    Bitmap bitmap = ImageUtils.imageProxyToBitmap(mediaImage);
+                    Bitmap bitmap = imageProxy.toBitmap();
+                    // Image mediaImage = imageProxy.getImage();
+                    // Bitmap bitmap = ImageUtils.imageProxyToBitmap(mediaImage);
                     tensorImage.load(bitmap);
                     TensorImage tensorImage_ = imageProcessor.process(tensorImage);
                     Log.d("FrameProcess", "开始预测...");
