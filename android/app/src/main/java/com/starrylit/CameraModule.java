@@ -168,7 +168,7 @@ public class CameraModule extends ReactContextBaseJavaModule {
                     Log.d("FrameProcess", "开始预测...");
                     List<Segmentation> results = imageSegmenter.segment(tensorImage_);
                     // RegionProcess.getMask(results, mScreenWidth, mScreenHeight)
-                    overlayView.setBitmap(DrawStar.transImage(mScreenWidth, mScreenHeight));
+                    overlayView.setBitmap(RegionProcess.getMask(results, mScreenWidth, mScreenHeight));
                     Log.d("FrameProcess", "预测完毕");
                     imageProxy.close();
                 }
