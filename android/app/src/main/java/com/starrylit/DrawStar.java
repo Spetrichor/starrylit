@@ -49,30 +49,29 @@ public class DrawStar {
         return transparentBitmap;
     }
 
-    public static Bitmap transImage(int mScreenWidth, int mScreenHeight) {
-        String filePath = "kitten.jpg";
-        Bitmap bitmap = LoadImage.loadImage(filePath);
-        Mat mat = new Mat();
-        Utils.bitmapToMat(bitmap, mat);
-        Mat gray = new Mat();
-        Imgproc.cvtColor(mat, gray, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.blur(mat, gray, new Size(3, 3));
-        Imgproc.GaussianBlur(mat, gray, new Size(3, 3), 5, 5);
-        Mat thresh = new Mat();
-        Imgproc.adaptiveThreshold(gray, thresh, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 11, 2);
-        Mat edges = new Mat();
-        Imgproc.Canny(thresh, edges, 100, 200);
-        Utils.matToBitmap(edges, bitmap);
-        gray.release();
-        thresh.release();
-        edges.release();
-        // 创建一个新的Bitmap并调整大小
-        float scaleFactor = Math.min(mScreenWidth * 1f / bitmap.getWidth(), mScreenHeight * 1f / bitmap.getHeight());
-        int scaleWidth = (int) (bitmap.getWidth() * scaleFactor);
-        int scaleHeight = (int) (bitmap.getHeight() * scaleFactor);
+    // public static Bitmap transImage(int mScreenWidth, int mScreenHeight) {
+    //     Bitmap bitmap = LoadImage.loadImage(filePath);
+    //     Mat mat = new Mat();
+    //     Utils.bitmapToMat(bitmap, mat);
+    //     Mat gray = new Mat();
+    //     Imgproc.cvtColor(mat, gray, Imgproc.COLOR_BGR2GRAY);
+    //     Imgproc.blur(mat, gray, new Size(3, 3));
+    //     Imgproc.GaussianBlur(mat, gray, new Size(3, 3), 5, 5);
+    //     Mat thresh = new Mat();
+    //     Imgproc.adaptiveThreshold(gray, thresh, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 11, 2);
+    //     Mat edges = new Mat();
+    //     Imgproc.Canny(thresh, edges, 100, 200);
+    //     Utils.matToBitmap(edges, bitmap);
+    //     gray.release();
+    //     thresh.release();
+    //     edges.release();
+    //     // 创建一个新的Bitmap并调整大小
+    //     float scaleFactor = Math.min(mScreenWidth * 1f / bitmap.getWidth(), mScreenHeight * 1f / bitmap.getHeight());
+    //     int scaleWidth = (int) (bitmap.getWidth() * scaleFactor);
+    //     int scaleHeight = (int) (bitmap.getHeight() * scaleFactor);
 
-        Bitmap scaleBitmap = Bitmap.createScaledBitmap(bitmap, scaleWidth, scaleHeight, false);
-        Log.d("DrawStar","成功创建了一个Bitmap");
-        return scaleBitmap;
-    }
+    //     Bitmap scaleBitmap = Bitmap.createScaledBitmap(bitmap, scaleWidth, scaleHeight, false);
+    //     Log.d("DrawStar","成功创建了一个Bitmap");
+    //     return scaleBitmap;
+    // }
 }

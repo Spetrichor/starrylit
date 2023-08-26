@@ -10,6 +10,9 @@ import com.facebook.react.defaults.DefaultReactNativeHost;
 import com.facebook.soloader.SoLoader;
 import java.util.List;
 
+import com.starrylit.CameraPackage;
+import com.starrylit.SetImageUrlPackage;
+
 public class MainApplication extends Application implements ReactApplication {
 
   private final ReactNativeHost mReactNativeHost = new DefaultReactNativeHost(this) {
@@ -26,7 +29,7 @@ public class MainApplication extends Application implements ReactApplication {
       // example:
       // packages.add(new MyReactNativePackage());
       packages.add(new CameraPackage());
-
+      packages.add(new SetImageUrlPackage());
 
       return packages;
     }

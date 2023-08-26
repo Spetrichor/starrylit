@@ -82,8 +82,12 @@ const openPhotoPicker = async () => {
 
   if (result.error) {
     console.log(result.error);
+  } else if(result.didCancel){
+    console.log('User cancelled image picker');
   } else {
-    console.log(result.assets[0].uri);
+    const imageUrl = result.assets[0].uri;
+    console.log(imageUrl);
+    NativeModules.SetImageUrlModule.setImageURL(imageUrl);
   }
 }
 // 创建一个按钮组件，给它添加一个onPress事件处理函数
