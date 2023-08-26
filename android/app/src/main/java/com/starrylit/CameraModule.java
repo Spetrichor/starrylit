@@ -41,6 +41,7 @@ import java.util.*;
 import com.starrylit.RegionProcess;
 import com.starrylit.ColorLabel;
 import com.starrylit.OverlayView;
+import com.starrylit.DrawStar;
 import android.media.Image;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -165,7 +166,8 @@ public class CameraModule extends ReactContextBaseJavaModule {
                     TensorImage tensorImage_ = imageProcessor.process(tensorImage);
                     Log.d("FrameProcess", "开始预测...");
                     List<Segmentation> results = imageSegmenter.segment(tensorImage_);
-                    overlayView.setBitmap(RegionProcess.getMask(results, mScreenWidth, mScreenHeight));
+                    overlayView.setBitmap(DrawStar.drawStar(RegionProcess.getMask(results, mScreenWidth, mScreenHeight),
+                            mScreenWidth, mScreenHeight));
                     Log.d("FrameProcess", "预测完毕");
                     imageProxy.close();
                 }

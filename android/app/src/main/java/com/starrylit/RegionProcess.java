@@ -40,7 +40,6 @@ import org.tensorflow.lite.Tensor;
 import org.tensorflow.lite.gpu.CompatibilityList;
 import java.util.concurrent.ExecutionException;
 import java.util.*;
-import com.starrylit.ImageUtils;
 import android.media.Image;
 
 import java.io.IOException;
@@ -57,7 +56,6 @@ public class RegionProcess {
         for (int i = 0; i < results.get(0).getColoredLabels().size(); i++) {
             ColoredLabel coloredLabel = results.get(0).getColoredLabels().get(i);
             int color;
-            Log.d("FrameProcess", "种类:" + coloredLabel.getlabel() + " 像素值:" + coloredLabel.getArgb() + " 序号:" + i);
             if (coloredLabel.getlabel().equals("sky")) {
                 color = Color.WHITE;
             } else {
