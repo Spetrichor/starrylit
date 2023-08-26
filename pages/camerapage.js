@@ -24,7 +24,48 @@ async function requestCameraPermission() {
     console.warn(err);
   }
 }
-
+async function requestExternalStoragePermission() {  
+  try {  
+    const granted = await PermissionsAndroid.request(  
+      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,  
+      {  
+        title: '需要读写外部存储权限',  
+        message: '应用需要读写您的外部存储',  
+        buttonNeutral: '稍后询问',  
+        buttonNegative: '取消',  
+        buttonPositive: '确定',  
+      },  
+    );  
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {  
+      console.log('你现在可以读写外部存储了');  
+    } else {  
+      console.log('用户未授予读写外部存储权限');  
+    }  
+  } catch (err) {  
+    console.warn(err);  
+  }  
+}
+async function requestExternalStoragePermission_() {  
+  try {  
+    const granted = await PermissionsAndroid.request(  
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,  
+      {  
+        title: '需要读写外部存储权限',  
+        message: '应用需要读写您的外部存储',  
+        buttonNeutral: '稍后询问',  
+        buttonNegative: '取消',  
+        buttonPositive: '确定',  
+      },  
+    );  
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {  
+      console.log('你现在可以读写外部存储了');  
+    } else {  
+      console.log('用户未授予读写外部存储权限');  
+    }  
+  } catch (err) {  
+    console.warn(err);  
+  }  
+}
 // 创建一个按钮组件，给它添加一个onPress事件处理函数
 const App = () => {
     // 这个函数的作用是调用NativeModules.CameraModule.startCameraPreview方法
@@ -32,10 +73,14 @@ const App = () => {
         requestCameraPermission();
         NativeModules.CameraModule.startCamera();
     };
-
+    const onPress_c=()=>{
+        requestExternalStoragePermission();
+        requestExternalStoragePermission_();
+    }
     return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <Button title="启动相机预览" onPress={onPress} />
+            <Button title="获取存储权限" onPress={onPress_c} />
         </View>
     );
 };

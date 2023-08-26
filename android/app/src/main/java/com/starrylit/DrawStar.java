@@ -11,6 +11,12 @@ import java.util.List;
 import android.graphics.Color;
 import java.util.ArrayList;
 import java.util.Random;
+//导入OpenCV库
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.core.Size;
+import com.starrylit.LoadImage;
 
 public class DrawStar {
     public static Bitmap drawStar(Bitmap originalbitmap, int mScreenWidth, int mScreenHeight) {
@@ -31,10 +37,7 @@ public class DrawStar {
                         // 创建圆的画笔
                         Paint circlePaint = new Paint();
                         circlePaint.setColor(Color.WHITE);
-                        int centerAlpha = opacity;
-                        int outerAlpha = (maxOpacity - centerAlpha) / (radius + 1);
-                        int innerAlpha = outerAlpha * radius + centerAlpha;
-                        circlePaint.setAlpha(innerAlpha);
+                        circlePaint.setAlpha(opacity);
                         circlePaint.setStrokeWidth(0); // 设置半径
 
                         // 在这里绘制一个圆
@@ -44,5 +47,32 @@ public class DrawStar {
             }
         }
         return transparentBitmap;
+    }
+
+    public static Bitmap transImage(int mScreenWidth, int mScreenHeight) {
+        String filePath = "kitten.jpg";
+        Bitmap bitmap = LoadImage.loadImage(filePath);
+        Mat mat = new Mat();
+        Utils.bitmapToMat(bitmap, mat);
+        Mat gray = new Mat();
+        Imgproc.cvtColor(mat, gray, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.blur(mat, gray, new Size(3, 3));
+        Imgproc.GaussianBlur(mat, gray, new Size(3, 3), 5, 5);
+        Mat thresh = new Mat();
+        Imgproc.adaptiveThreshold(gray, thresh, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 11, 2);
+        Mat edges = new Mat();
+        Imgproc.Canny(thresh, edges, 100, 200);
+        Utils.matToBitmap(edges, bitmap);
+        gray.release();
+        thresh.release();
+        edges.release();
+        // 创建一个新的Bitmap并调整大小
+        float scaleFactor = Math.min(mScreenWidth * 1f / bitmap.getWidth(), mScreenHeight * 1f / bitmap.getHeight());
+        int scaleWidth = (int) (bitmap.getWidth() * scaleFactor);
+        int scaleHeight = (int) (bitmap.getHeight() * scaleFactor);
+
+        Bitmap scaleBitmap = Bitmap.createScaledBitmap(bitmap, scaleWidth, scaleHeight, false);
+        Log.d("DrawStar","成功创建了一个Bitmap");
+        return scaleBitmap;
     }
 }

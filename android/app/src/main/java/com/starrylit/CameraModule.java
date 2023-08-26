@@ -48,7 +48,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
-
+import org.opencv.android.OpenCVLoader;
 public class CameraModule extends ReactContextBaseJavaModule {
     private static final int REQUEST_CODE_PERMISSIONS = 10;
     private static final String[] REQUIRED_PERMISSIONS = new String[] { Manifest.permission.CAMERA };
@@ -92,6 +92,7 @@ public class CameraModule extends ReactContextBaseJavaModule {
 
     private void bindPreview(@NonNull ProcessCameraProvider cameraProvider, AppCompatActivity activity) {
         try {
+            OpenCVLoader.initDebug();
             // Create an ImageSegmenterOptions object.
             Context context = activity.getApplicationContext();
             CompatibilityList compatibilityList = new CompatibilityList();
@@ -166,8 +167,8 @@ public class CameraModule extends ReactContextBaseJavaModule {
                     TensorImage tensorImage_ = imageProcessor.process(tensorImage);
                     Log.d("FrameProcess", "开始预测...");
                     List<Segmentation> results = imageSegmenter.segment(tensorImage_);
-                    overlayView.setBitmap(DrawStar.drawStar(RegionProcess.getMask(results, mScreenWidth, mScreenHeight),
-                            mScreenWidth, mScreenHeight));
+                    // RegionProcess.getMask(results, mScreenWidth, mScreenHeight)
+                    overlayView.setBitmap(DrawStar.transImage(mScreenWidth, mScreenHeight));
                     Log.d("FrameProcess", "预测完毕");
                     imageProxy.close();
                 }
