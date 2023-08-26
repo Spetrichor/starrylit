@@ -76,18 +76,19 @@ const openPhotoPicker = async () => {
     quality: 0.8,
     includeExtra: false,
     selectionLimit: 1,
+    includeBase64: true,
   };
 
   const result = await launchImageLibrary(options);
 
   if (result.error) {
     console.log(result.error);
-  } else if(result.didCancel){
+  } else if (result.didCancel) {
     console.log('User cancelled image picker');
   } else {
-    const imageUrl = result.assets[0].uri;
-    console.log(imageUrl);
-    NativeModules.SetImageUrlModule.setImageURL(imageUrl);
+    const imageBase64 = result.assets[0].base64;
+    console.log(imageBase64);
+    NativeModules.SetImageUrlModule.setImageURL(imageBase64);
   }
 }
 // 创建一个按钮组件，给它添加一个onPress事件处理函数

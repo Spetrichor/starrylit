@@ -14,7 +14,7 @@ import com.facebook.react.bridge.ReactMethod;
 import android.util.Log;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-
+import android.util.Base64;
 public class SetImageUrlModule extends ReactContextBaseJavaModule {
     public SetImageUrlModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -26,12 +26,18 @@ public class SetImageUrlModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void setImageURL(String url) {
-        Log.d("setImageURL", "setImageURL: " + url);
+    public void setImageURL(String base64Image) {
+        Log.d("setImageURL", "setImageURL: " + base64Image);
         // 根据url读取本地图片文件为bitmap
         try {
-            Bitmap bitmap = BitmapFactory.decodeFile(url);
-            Log.d("setImageURL", "success");
+            // 解码 Base64 字符串
+            byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
+            // 将字节数组转换为 Bitmap 对象
+            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            if (bitmap == null)
+                Log.d("setImageURL", "bitmap is null");
+            else
+                Log.d("setImageURL", "bitmap is not null");
 
         } catch (Exception e) {
             Log.d("setImageURL", "fail");
