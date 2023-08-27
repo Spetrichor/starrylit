@@ -16,6 +16,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
 public class SetImageUrlModule extends ReactContextBaseJavaModule {
+    public static Bitmap originalbitmap;
     public SetImageUrlModule(ReactApplicationContext reactContext) {
         super(reactContext);
     }
@@ -26,7 +27,7 @@ public class SetImageUrlModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void setImageURL(String base64Image) {
+    public static void setImageURL(String base64Image) {
         Log.d("setImageURL", "setImageURL: " + base64Image);
         // 根据url读取本地图片文件为bitmap
         try {
@@ -34,9 +35,13 @@ public class SetImageUrlModule extends ReactContextBaseJavaModule {
             byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
             // 将字节数组转换为 Bitmap 对象
             Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-            
+            originalbitmap = bitmap;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Bitmap getBitmap() {
+        return originalbitmap;
     }
 }

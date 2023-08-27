@@ -187,34 +187,9 @@ public class CameraModule extends ReactContextBaseJavaModule {
                     imageAnalysis.clearAnalyzer();
                     thread.interrupt();
                     Thread thread = new Thread(
-                    new FrameProcessor(imageSegmenter, imageProcessor, imageAnalysis, executorService,
-                            overlayView, mScreenWidth, mScreenHeight));
+                            new FrameProcessor(imageSegmenter, imageProcessor, imageAnalysis, executorService,
+                                    overlayView, mScreenWidth, mScreenHeight));
                     thread.start();
-                    // imageAnalysis.setAnalyzer(executorService, new ImageAnalysis.Analyzer() {
-                    // @Override
-                    // public void analyze(ImageProxy imageProxy) {
-                    // // 第一次执行帧，进行图像分割
-                    // if (isfirst) {
-                    // Bitmap bitmap = imageProxy.toBitmap();
-                    // tensorImage.load(bitmap);
-                    // TensorImage tensorImage_ = imageProcessor.process(tensorImage);
-                    // Log.d("FrameProcess", "开始预测...");
-                    // results = imageSegmenter.segment(tensorImage_);
-                    // Log.d("FrameProcess", "预测完毕");
-                    // // results即为预测结果
-                    // // 设置标志位
-                    // isfirst = false;
-                    // imageProxy.close();
-                    // }
-                    // // 图像分割完毕后，获取图像分割结果并开始绘制
-                    // else {
-                    // Log.d("FrameProcess", "开始绘制...");
-                    // overlayView.setBitmap(RegionProcess.getMask(results, mScreenWidth,
-                    // mScreenHeight));
-                    // Log.d("FrameProcess", "绘制完毕...");
-                    // }
-                    // }
-                    // });
                 }
             });
             RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(

@@ -20,6 +20,7 @@ import org.tensorflow.lite.gpu.CompatibilityList;
 import java.util.concurrent.ExecutorService;
 import com.starrylit.OverlayView;
 import com.starrylit.RegionProcess;
+import com.starrylit.DrawStar;
 import android.util.Log;
 
 class FrameProcessor implements Runnable {
@@ -66,8 +67,8 @@ class FrameProcessor implements Runnable {
                 // 图像分割完毕后，获取图像分割结果并开始绘制
                 else {
                     Log.d("Button", "开始绘制...");
-                    overlayView.setBitmap(RegionProcess.getMask(results, mScreenWidth,
-                            mScreenHeight));
+                    overlayView.setBitmap(DrawStar.drawStar(RegionProcess.getMask(results, mScreenWidth,
+                            mScreenHeight), mScreenWidth, mScreenHeight));
                     Log.d("Button", "绘制完毕...");
                 }
                 imageProxy.close();
