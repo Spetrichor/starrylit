@@ -42,6 +42,7 @@ import com.starrylit.RegionProcess;
 import com.starrylit.ColorLabel;
 import com.starrylit.OverlayView;
 import com.starrylit.DrawStar;
+import com.starrylit.FrameProcessor;
 import android.media.Image;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -54,11 +55,14 @@ import android.widget.RelativeLayout;
 import android.view.KeyEvent;
 import android.content.Intent;
 import androidx.camera.core.CameraX;
+
 public class CameraModule extends ReactContextBaseJavaModule {
     private static final int REQUEST_CODE_PERMISSIONS = 10;
     private static final String[] REQUIRED_PERMISSIONS = new String[] { Manifest.permission.CAMERA };
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private Button button;
+    private boolean isfirst = true;
+    // private List<Segmentation> results = new ArrayList<>();
 
     public CameraModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -124,7 +128,6 @@ public class CameraModule extends ReactContextBaseJavaModule {
             ImageProcessor imageProcessor = new ImageProcessor.Builder()
                     .add(new ResizeOp(513, 513, ResizeOp.ResizeMethod.BILINEAR))
                     .build();
-            TensorImage tensorImage = new TensorImage(DataType.FLOAT32);
 
             // 创建视图
             // 创建一个相对布局，用于放置相机预览和其他视图
@@ -159,15 +162,59 @@ public class CameraModule extends ReactContextBaseJavaModule {
                     new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT));
             frameLayout.addView(overlayView);
+            // 帧处理
+            // 帧处理过程
+            ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+                    // .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                    .setTargetResolution(new Size(1280, 720))
+                    .setOutputImageRotationEnabled(true)
+                    .setTargetRotation(Surface.ROTATION_0)
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build();
+            ExecutorService executorService = Executors.newFixedThreadPool(4);
+            Thread thread = new Thread(
+                    new FrameProcessor(imageSegmenter, imageProcessor, imageAnalysis, executorService,
+                            overlayView, mScreenWidth, mScreenHeight));
             // 设置按钮相关
             Button button = new Button(activity);
-            button.setText("还没写样式;)");
+            button.setText("还没写样式 ;)");
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    isfirst = true;
                     // 点击按钮后的处理
                     Log.d("Button", "点击了按钮");
-                    // 获取当前的图片
+                    imageAnalysis.clearAnalyzer();
+                    thread.interrupt();
+                    Thread thread = new Thread(
+                    new FrameProcessor(imageSegmenter, imageProcessor, imageAnalysis, executorService,
+                            overlayView, mScreenWidth, mScreenHeight));
+                    thread.start();
+                    // imageAnalysis.setAnalyzer(executorService, new ImageAnalysis.Analyzer() {
+                    // @Override
+                    // public void analyze(ImageProxy imageProxy) {
+                    // // 第一次执行帧，进行图像分割
+                    // if (isfirst) {
+                    // Bitmap bitmap = imageProxy.toBitmap();
+                    // tensorImage.load(bitmap);
+                    // TensorImage tensorImage_ = imageProcessor.process(tensorImage);
+                    // Log.d("FrameProcess", "开始预测...");
+                    // results = imageSegmenter.segment(tensorImage_);
+                    // Log.d("FrameProcess", "预测完毕");
+                    // // results即为预测结果
+                    // // 设置标志位
+                    // isfirst = false;
+                    // imageProxy.close();
+                    // }
+                    // // 图像分割完毕后，获取图像分割结果并开始绘制
+                    // else {
+                    // Log.d("FrameProcess", "开始绘制...");
+                    // overlayView.setBitmap(RegionProcess.getMask(results, mScreenWidth,
+                    // mScreenHeight));
+                    // Log.d("FrameProcess", "绘制完毕...");
+                    // }
+                    // }
+                    // });
                 }
             });
             RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(
@@ -179,33 +226,7 @@ public class CameraModule extends ReactContextBaseJavaModule {
             relativeLayout.addView(button, buttonParams);
             // overlayView.setAlpha(0.5f);
             preview.setSurfaceProvider(previewView.getSurfaceProvider());
-            // 帧处理过程
-            ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                    // .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                    .setTargetResolution(new Size(1280, 720))
-                    .setOutputImageRotationEnabled(true)
-                    .setTargetRotation(Surface.ROTATION_0)
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build();
-            ExecutorService executorService = Executors.newFixedThreadPool(4);
 
-            imageAnalysis.setAnalyzer(executorService, new ImageAnalysis.Analyzer() {
-                @Override
-                public void analyze(ImageProxy imageProxy) {
-                    // 完成图片分析函数
-                    Bitmap bitmap = imageProxy.toBitmap();
-                    // Image mediaImage = imageProxy.getImage();
-                    // Bitmap bitmap = ImageUtils.imageProxyToBitmap(mediaImage);
-                    tensorImage.load(bitmap);
-                    TensorImage tensorImage_ = imageProcessor.process(tensorImage);
-                    Log.d("FrameProcess", "开始预测...");
-                    List<Segmentation> results = imageSegmenter.segment(tensorImage_);
-                    // RegionProcess.getMask(results, mScreenWidth, mScreenHeight)
-                    overlayView.setBitmap(RegionProcess.getMask(results, mScreenWidth, mScreenHeight));
-                    Log.d("FrameProcess", "预测完毕");
-                    imageProxy.close();
-                }
-            });
             Camera camera = cameraProvider.bindToLifecycle(activity, cameraSelector, imageAnalysis, preview);
         } catch (Exception e) {
             // 打印错误信息
