@@ -34,13 +34,8 @@ public class SetImageUrlModule extends ReactContextBaseJavaModule {
             byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
             // 将字节数组转换为 Bitmap 对象
             Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-            if (bitmap == null)
-                Log.d("setImageURL", "bitmap is null");
-            else
-                Log.d("setImageURL", "bitmap is not null");
-
+            
         } catch (Exception e) {
-            Log.d("setImageURL", "fail");
             throw new RuntimeException(e);
         }
     }
