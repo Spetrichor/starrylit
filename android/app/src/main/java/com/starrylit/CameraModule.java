@@ -49,10 +49,16 @@ import java.util.concurrent.Executors;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 import org.opencv.android.OpenCVLoader;
+import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.view.KeyEvent;
+import android.content.Intent;
+import androidx.camera.core.CameraX;
 public class CameraModule extends ReactContextBaseJavaModule {
     private static final int REQUEST_CODE_PERMISSIONS = 10;
     private static final String[] REQUIRED_PERMISSIONS = new String[] { Manifest.permission.CAMERA };
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    private Button button;
 
     public CameraModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -92,6 +98,7 @@ public class CameraModule extends ReactContextBaseJavaModule {
 
     private void bindPreview(@NonNull ProcessCameraProvider cameraProvider, AppCompatActivity activity) {
         try {
+            // 初始化OpenCV
             OpenCVLoader.initDebug();
             // Create an ImageSegmenterOptions object.
             Context context = activity.getApplicationContext();
@@ -118,21 +125,30 @@ public class CameraModule extends ReactContextBaseJavaModule {
                     .add(new ResizeOp(513, 513, ResizeOp.ResizeMethod.BILINEAR))
                     .build();
             TensorImage tensorImage = new TensorImage(DataType.FLOAT32);
-            // 源代码
+
+            // 创建视图
+            // 创建一个相对布局，用于放置相机预览和其他视图
+            RelativeLayout relativeLayout = new RelativeLayout(activity);
+            relativeLayout.setLayoutParams(new RelativeLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.MATCH_PARENT,
+                    RelativeLayout.LayoutParams.MATCH_PARENT));
+            // 创建视图
             Preview preview = new Preview.Builder()
                     .build();
-
+            // 创建相机选择器
             CameraSelector cameraSelector = new CameraSelector.Builder()
                     .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                     .build();
-
+            // 获取容器的视图
             ViewGroup container = activity.findViewById(android.R.id.content);
             container.removeAllViews();
-
+            // 创建一个帧布局，用于放置预览视图和叠加视图
             FrameLayout frameLayout = new FrameLayout(activity);
             frameLayout.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.MATCH_PARENT));
             container.addView(frameLayout);
+            container.addView(relativeLayout);
+            // 创建一个预览视图
             PreviewView previewView = new PreviewView(activity);
             previewView.setLayoutParams(
                     new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
@@ -143,9 +159,26 @@ public class CameraModule extends ReactContextBaseJavaModule {
                     new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT));
             frameLayout.addView(overlayView);
+            // 设置按钮相关
+            Button button = new Button(activity);
+            button.setText("还没写样式;)");
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // 点击按钮后的处理
+                    Log.d("Button", "点击了按钮");
+                    // 获取当前的图片
+                }
+            });
+            RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.WRAP_CONTENT,
+                    RelativeLayout.LayoutParams.WRAP_CONTENT);
+            buttonParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            buttonParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+            buttonParams.setMargins(0, 0, 0, 0); // 如果需要，可以设置按钮的边距
+            relativeLayout.addView(button, buttonParams);
             // overlayView.setAlpha(0.5f);
             preview.setSurfaceProvider(previewView.getSurfaceProvider());
-
             // 帧处理过程
             ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
                     // .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
