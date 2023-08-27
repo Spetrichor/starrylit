@@ -19,9 +19,11 @@ import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.core.Size;
-
+import org.opencv.core.CvType;
+import org.opencv.core.Core;
 import com.starrylit.OrientationActivity;
 import com.starrylit.SetImageUrlModule;
+import java.nio.IntBuffer;
 
 public class DrawStar {
     private static boolean isdrawn = false;
@@ -38,7 +40,7 @@ public class DrawStar {
         Log.d("Button", "方位角：" + azimuth + " 俯仰角：" + pitch + " 横滚角：" + roll);
         Bitmap transparentBitmap = Bitmap.createBitmap(mScreenWidth, mScreenHeight, Bitmap.Config.ARGB_8888);
         if (!isdrawn) {
-            transBitmap = DrawStar.transImage(mScreenWidth, mScreenHeight);
+            transBitmap = DrawStar.Sketch(mScreenWidth, mScreenHeight);
             isdrawn = true;
         }
         Canvas canvas = new Canvas(transparentBitmap);
@@ -77,17 +79,18 @@ public class DrawStar {
             Utils.bitmapToMat(bitmap, mat);
             Mat gray = new Mat();
             Imgproc.cvtColor(mat, gray, Imgproc.COLOR_BGR2GRAY);
-            // Imgproc.blur(gray, gray, new Size(3, 3));   
+            // Imgproc.blur(gray, gray, new Size(3, 3));
             Imgproc.GaussianBlur(gray, gray, new Size(3, 3), 5, 5);
             // Mat thresh = new Mat();
             // Imgproc.adaptiveThreshold(gray, thresh, 255,
-            //         Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 11, 2);
+            // Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 11, 2);
             // Mat edges = new Mat();
             // Imgproc.Canny(thresh, edges, 100, 200);
             // Utils.matToBitmap(edges, bitmap);
             Mat thes = new Mat();
             double maxValue = 255;
-            Imgproc.adaptiveThreshold(gray, thes, maxValue, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 13, 5);
+            Imgproc.adaptiveThreshold(gray, thes, maxValue, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 13,
+                    5);
             // Mat res = new Mat();
             // Imgproc.Canny(thes, res, 100, 200);
             Utils.matToBitmap(thes, bitmap);
@@ -108,5 +111,74 @@ public class DrawStar {
             Log.d("Button", e.toString());
             return null;
         }
+    }
+
+    public static Bitmap Sketch(int mScreenWidth, int mScreenHeight) {
+        Bitmap bitmap = SetImageUrlModule.getBitmap();
+        bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+        Mat src = new Mat(bitmap.getHeight(), bitmap.getWidth(), CvType.CV_8UC4);
+        Mat dest = new Mat(bitmap.getHeight(), bitmap.getWidth(), CvType.CV_8UC4);
+        Mat grey = new Mat(bitmap.getHeight(), bitmap.getWidth(), CvType.CV_8UC4);
+        Mat invert = new Mat(bitmap.getHeight(), bitmap.getWidth(), CvType.CV_8UC4);
+        Bitmap inv, gray;
+        Utils.bitmapToMat(bitmap, src);
+        Imgproc.cvtColor(src, grey, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.cvtColor(grey, grey, Imgproc.COLOR_GRAY2RGBA, 4);
+        Core.bitwise_not(grey, invert);
+        Imgproc.GaussianBlur(invert, invert, new Size(11, 11), 0);
+        inv = Bitmap.createBitmap(invert.cols(), invert.rows(), Bitmap.Config.ARGB_8888);
+        gray = Bitmap.createBitmap(invert.cols(), invert.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(invert, inv);
+        Utils.matToBitmap(grey, gray);
+        Bitmap b = ColorDodgeBlend(inv, gray);
+        // Bitmap processImg = Bitmap.createBitmap(dest.cols(), dest.rows(),
+        // Bitmap.Config.ARGB_8888);
+        // Utils.matToBitmap(dest, processImg);
+        float scaleFactor = Math.min(mScreenWidth * 1f / b.getWidth(),
+                mScreenHeight * 1f / b.getHeight());
+        int scaleWidth = (int) (b.getWidth() * scaleFactor );
+        int scaleHeight = (int) (b.getHeight() * scaleFactor );
+
+        Bitmap scaleBitmap = Bitmap.createScaledBitmap(b, scaleWidth,
+                scaleHeight, false);
+        return scaleBitmap;
+    }
+
+    private static int colordodge(int in1, int in2) {
+        float image = (float) in2;
+        float mask = (float) in1;
+        return ((int) ((image == 255) ? image : Math.min(255, (((long) mask << 8) / (255 - image))))) * 6;
+    }
+
+    public static Bitmap ColorDodgeBlend(Bitmap source, Bitmap layer) {
+        Bitmap base = source.copy(Bitmap.Config.ARGB_8888, true);
+        Bitmap blend = layer.copy(Bitmap.Config.ARGB_8888, false);
+        IntBuffer buffBase = IntBuffer.allocate(base.getWidth() * base.getHeight());
+        base.copyPixelsToBuffer(buffBase);
+        buffBase.rewind();
+        IntBuffer buffBlend = IntBuffer.allocate(blend.getWidth() * blend.getHeight());
+        blend.copyPixelsToBuffer(buffBlend);
+        buffBlend.rewind();
+        IntBuffer buffOut = IntBuffer.allocate(base.getWidth() * base.getHeight());
+        buffOut.rewind();
+        while (buffOut.position() < buffOut.limit()) {
+            int filterInt = buffBlend.get();
+            int srcInt = buffBase.get();
+            int redValueFilter = Color.red(filterInt);
+            int greenValueFilter = Color.green(filterInt);
+            int blueValueFilter = Color.blue(filterInt);
+            int redValueSrc = Color.red(srcInt);
+            int greenValueSrc = Color.green(srcInt);
+            int blueValueSrc = Color.blue(srcInt);
+            int redValueFinal = colordodge(redValueFilter, redValueSrc);
+            int greenValueFinal = colordodge(greenValueFilter, greenValueSrc);
+            int blueValueFinal = colordodge(blueValueFilter, blueValueSrc);
+            int pixel = Color.argb(255, redValueFinal, greenValueFinal, blueValueFinal);
+            buffOut.put(pixel);
+        }
+        buffOut.rewind();
+        base.copyPixelsFromBuffer(buffOut);
+        blend.recycle();
+        return base;
     }
 }
