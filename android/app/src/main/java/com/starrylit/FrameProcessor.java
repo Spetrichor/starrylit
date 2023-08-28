@@ -33,9 +33,9 @@ class FrameProcessor implements Runnable {
     private OverlayView overlayView;
     private int mScreenWidth;
     private int mScreenHeight;
-
+    private DrawStar imageDraw;
     public FrameProcessor(ImageSegmenter imageSegmenter, ImageProcessor imageProcessor, ImageAnalysis imageAnalysis,
-            ExecutorService executorService, OverlayView overlayView, int mScreenWidth, int mScreenHeight) {
+            ExecutorService executorService, OverlayView overlayView, int mScreenWidth, int mScreenHeight,DrawStar imageDraw) {
         this.imageSegmenter = imageSegmenter;
         this.imageProcessor = imageProcessor;
         this.imageAnalysis = imageAnalysis;
@@ -43,6 +43,7 @@ class FrameProcessor implements Runnable {
         this.overlayView = overlayView;
         this.mScreenWidth = mScreenWidth;
         this.mScreenHeight = mScreenHeight;
+        this.imageDraw = imageDraw;
         isfirst = true;
     }
 
@@ -66,10 +67,8 @@ class FrameProcessor implements Runnable {
                 }
                 // 图像分割完毕后，获取图像分割结果并开始绘制
                 else {
-                    Log.d("Button", "开始绘制...");
-                    overlayView.setBitmap(DrawStar.drawStar(RegionProcess.getMask(results, mScreenWidth,
+                    overlayView.setBitmap(imageDraw.drawStar(RegionProcess.getMask(results, mScreenWidth,
                             mScreenHeight), mScreenWidth, mScreenHeight));
-                    Log.d("Button", "绘制完毕...");
                 }
                 imageProxy.close();
             }

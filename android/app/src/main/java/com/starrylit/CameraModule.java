@@ -172,9 +172,10 @@ public class CameraModule extends ReactContextBaseJavaModule {
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build();
             ExecutorService executorService = Executors.newFixedThreadPool(4);
+            DrawStar imageDraw_0 = new DrawStar();
             Thread thread = new Thread(
                     new FrameProcessor(imageSegmenter, imageProcessor, imageAnalysis, executorService,
-                            overlayView, mScreenWidth, mScreenHeight));
+                            overlayView, mScreenWidth, mScreenHeight,imageDraw_0));
             // 设置按钮相关
             Button button = new Button(activity);
             button.setText("还没写样式 ;)");
@@ -182,13 +183,12 @@ public class CameraModule extends ReactContextBaseJavaModule {
                 @Override
                 public void onClick(View v) {
                     isfirst = true;
-                    // 点击按钮后的处理
-                    Log.d("Button", "点击了按钮");
+                    DrawStar imageDraw = new DrawStar();
                     imageAnalysis.clearAnalyzer();
                     thread.interrupt();
                     Thread thread = new Thread(
                             new FrameProcessor(imageSegmenter, imageProcessor, imageAnalysis, executorService,
-                                    overlayView, mScreenWidth, mScreenHeight));
+                                    overlayView, mScreenWidth, mScreenHeight,imageDraw));
                     thread.start();
                 }
             });

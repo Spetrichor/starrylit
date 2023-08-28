@@ -26,21 +26,20 @@ import com.starrylit.SetImageUrlModule;
 import java.nio.IntBuffer;
 
 public class DrawStar {
-    private static boolean isdrawn = false;
-    private static Bitmap transBitmap = null;
+    private boolean isdrawn = false;
+    private Bitmap transBitmap = null;
+    private Bitmap transparentBitmap;
 
-    public static Bitmap drawStar(Bitmap maskBitmap, int mScreenWidth, int mScreenHeight) {
+    public Bitmap drawStar(Bitmap maskBitmap, int mScreenWidth, int mScreenHeight) {
         if (!isdrawn) {
             transBitmap = DrawStar.Sketch(mScreenWidth, mScreenHeight);
-            isdrawn = true;
-        }
-        Bitmap transparentBitmap = Bitmap.createBitmap(mScreenWidth, mScreenHeight, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(transparentBitmap);
-        List<Point> circlePositions = new ArrayList<>();
-        Random random = new Random();
-        int maxRadius = 2; // 圆的最大半径
-        // 获取transBitmap中每个像素的像素值
-        if (circlePositions.size() == 0) {
+            transparentBitmap = Bitmap.createBitmap(mScreenWidth, mScreenHeight, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(transparentBitmap);
+            Random random = new Random();
+            int maxRadius = 2; // 圆的最大半径
+            int xOffset = mScreenWidth / 4;
+            int yOffset = mScreenHeight / 6;
+            // 获取transBitmap中每个像素的像素值
             Point middlePosition = new Point(transBitmap.getWidth() / 2, transBitmap.getHeight() / 2);
             for (int y = 0; y < transBitmap.getHeight(); y++) {
                 for (int x = 0; x < transBitmap.getWidth(); x++) {
@@ -55,18 +54,27 @@ public class DrawStar {
                         alpha = alpha > 255 ? 255 : alpha;
                         alpha = alpha < 0 ? 0 : alpha;
                         int radius = random.nextInt(maxRadius);
-                        Point circlePosition = new Point(x, y);
-                        circlePositions.add(circlePosition);// 存储圆的位置
                         Paint circlePaint = new Paint();
                         circlePaint.setColor(Color.WHITE);
                         circlePaint.setAlpha(alpha);
                         circlePaint.setStrokeWidth(0); // 设置半径
-                        canvas.drawCircle(x, y, radius, circlePaint);
+                        canvas.drawCircle(x + xOffset, y + yOffset, radius, circlePaint);
                     }
                 }
             }
+            // 根据掩码位图
+            for (int y = yOffset; y < yOffset + transBitmap.getHeight(); y++) {
+                for (int x = xOffset; x < xOffset + transBitmap.getWidth(); x++) {
+                    int pixel = maskBitmap.getPixel(x, y);
+                    // 根据该像素位置的像素值来确定透明度并进行绘制
+                    if (pixel != -2130706433) {
+                        transparentBitmap.setPixel(x, y, Color.argb(0, 255, 255, 255));
+                    }
+                }
+            }
+            isdrawn = true;
         }
-
+        return transparentBitmap;
         // Random random = new Random();
         // int maxRadius = 3; // 圆的最大半径
         // int maxOpacity = 255; // 圆的最大透明度
@@ -90,7 +98,6 @@ public class DrawStar {
         // }
         // }
         // }
-        return transparentBitmap;
         // return transBitmap;
     }
 
