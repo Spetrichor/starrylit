@@ -28,7 +28,6 @@ import java.nio.IntBuffer;
 public class DrawStar {
     private static boolean isdrawn = false;
     private static Bitmap transBitmap = null;
-    private static List<Point> circlePositions = new ArrayList<>();
 
     public static Bitmap drawStar(Bitmap maskBitmap, int mScreenWidth, int mScreenHeight) {
         if (!isdrawn) {
