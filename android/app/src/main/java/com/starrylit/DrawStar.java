@@ -28,23 +28,46 @@ import java.nio.IntBuffer;
 public class DrawStar {
     private static boolean isdrawn = false;
     private static Bitmap transBitmap = null;
+    private static List<Point> circlePositions = new ArrayList<>();
 
     public static Bitmap drawStar(Bitmap maskBitmap, int mScreenWidth, int mScreenHeight) {
-        // 获取OrientationActivity.values数组，它包含了设备的方位、横滚和俯仰角
-        float[] values = OrientationActivity.values;
-        // 根据这些角度来调整你绘制星星的图形的方向或位置
-        // 这里只是一个简单的示例，你可以根据你自己的需求来修改
-        float azimuth = values[0]; // 方位角
-        float pitch = values[1]; // 俯仰角
-        float roll = values[2]; // 横滚角
-        Log.d("Button", "方位角：" + azimuth + " 俯仰角：" + pitch + " 横滚角：" + roll);
-        Bitmap transparentBitmap = Bitmap.createBitmap(mScreenWidth, mScreenHeight, Bitmap.Config.ARGB_8888);
         if (!isdrawn) {
             transBitmap = DrawStar.Sketch(mScreenWidth, mScreenHeight);
             isdrawn = true;
         }
+        Bitmap transparentBitmap = Bitmap.createBitmap(mScreenWidth, mScreenHeight, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(transparentBitmap);
         List<Point> circlePositions = new ArrayList<>();
+        Random random = new Random();
+        int maxRadius = 2; // 圆的最大半径
+        // 获取transBitmap中每个像素的像素值
+        if (circlePositions.size() == 0) {
+            Point middlePosition = new Point(transBitmap.getWidth() / 2, transBitmap.getHeight() / 2);
+            for (int y = 0; y < transBitmap.getHeight(); y++) {
+                for (int x = 0; x < transBitmap.getWidth(); x++) {
+                    int pixel = transBitmap.getPixel(x, y);
+                    int red = 255 - Color.red(pixel);
+                    int green = 255 - Color.green(pixel);
+                    int blue = 255 - Color.blue(pixel);
+                    // 根据该像素位置的像素值来确定透明度并进行绘制
+                    if (red > 30 && green > 30 && blue > 30) {
+                        int alpha = (red + green + blue) / 2
+                                - disFromMiddle(x, y, middlePosition, transBitmap.getWidth(), transBitmap.getHeight());
+                        alpha = alpha > 255 ? 255 : alpha;
+                        alpha = alpha < 0 ? 0 : alpha;
+                        int radius = random.nextInt(maxRadius);
+                        Point circlePosition = new Point(x, y);
+                        circlePositions.add(circlePosition);// 存储圆的位置
+                        Paint circlePaint = new Paint();
+                        circlePaint.setColor(Color.WHITE);
+                        circlePaint.setAlpha(alpha);
+                        circlePaint.setStrokeWidth(0); // 设置半径
+                        canvas.drawCircle(x, y, radius, circlePaint);
+                    }
+                }
+            }
+        }
+
         // Random random = new Random();
         // int maxRadius = 3; // 圆的最大半径
         // int maxOpacity = 255; // 圆的最大透明度
@@ -68,8 +91,8 @@ public class DrawStar {
         // }
         // }
         // }
-        // return transparentBitmap;
-        return transBitmap;
+        return transparentBitmap;
+        // return transBitmap;
     }
 
     public static Bitmap transImage(int mScreenWidth, int mScreenHeight) {
@@ -136,8 +159,8 @@ public class DrawStar {
         // Utils.matToBitmap(dest, processImg);
         float scaleFactor = Math.min(mScreenWidth * 1f / b.getWidth(),
                 mScreenHeight * 1f / b.getHeight());
-        int scaleWidth = (int) (b.getWidth() * scaleFactor );
-        int scaleHeight = (int) (b.getHeight() * scaleFactor );
+        int scaleWidth = (int) (b.getWidth() * scaleFactor / 2);
+        int scaleHeight = (int) (b.getHeight() * scaleFactor / 2);
 
         Bitmap scaleBitmap = Bitmap.createScaledBitmap(b, scaleWidth,
                 scaleHeight, false);
@@ -180,5 +203,42 @@ public class DrawStar {
         base.copyPixelsFromBuffer(buffOut);
         blend.recycle();
         return base;
+    }
+
+    public static int disFromMiddle(int x, int y, Point p, int wd, int ht) {
+        // int dis = (int) Math.sqrt((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y));
+        int disx = Math.abs(x - p.x);
+        int disy = Math.abs(y - p.y);
+        if (disx < wd / 10 * 4 && disy < ht / 10 * 4) {
+            // Log.d("Button", "没有计算");
+            return 0;
+        } else {
+            if (disx > disy) {
+                int alpha = (int) (((float) disx - (float) wd / 10.0 * 4.0) / (wd / 10) * 255);
+                if (alpha < 0)
+                    alpha = -alpha;
+                return alpha;
+            } else if (disx < disy) {
+                int alpha = (int) (((float) disy - (float) ht / 10.0 * 4.0) / (ht / 10) * 255);
+                // Log.d("Button", "disx<disy: " + alpha);
+                if (alpha < 0)
+                    alpha = -alpha;
+                return alpha;
+            } else {
+                if (wd < ht) {
+                    int alpha = (int) (((float) disx - (float) wd / 10.0 * 4.0) / (wd / 10) * 255);
+                    // Log.d("Button", "disx=disy: " + alpha);
+                    if (alpha < 0)
+                        alpha = -alpha;
+                    return alpha;
+                } else {
+                    int alpha = (int) (((float) disy - (float) ht / 10.0 * 4.0) / (ht / 10) * 255);
+                    // Log.d("Button", "disx=disy: " + alpha);
+                    if (alpha < 0)
+                        alpha = -alpha;
+                    return alpha;
+                }
+            }
+        }
     }
 }
