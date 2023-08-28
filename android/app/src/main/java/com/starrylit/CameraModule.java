@@ -107,7 +107,7 @@ public class CameraModule extends ReactContextBaseJavaModule {
             // Create an ImageSegmenterOptions object.
             Context context = activity.getApplicationContext();
             CompatibilityList compatibilityList = new CompatibilityList();
-            Log.d("GPU Available", compatibilityList.isDelegateSupportedOnThisDevice() ? "true" : "false");
+            // Log.d("GPU Available", compatibilityList.isDelegateSupportedOnThisDevice() ? "true" : "false");
             // 获取屏幕宽高
             WindowManager wm = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
             DisplayMetrics metrics = new DisplayMetrics();

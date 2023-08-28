@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import com.starrylit.OverlayView;
 import com.starrylit.RegionProcess;
 import com.starrylit.DrawStar;
+import com.starrylit.OpticalFlow;
 import android.util.Log;
 
 class FrameProcessor implements Runnable {
@@ -34,13 +35,18 @@ class FrameProcessor implements Runnable {
     private int mScreenWidth;
     private int mScreenHeight;
     private DrawStar imageDraw;
+    private OpticalFlow imageFlow = new OpticalFlow();
+    private int[] offset = new int[2];
+
     public FrameProcessor(ImageSegmenter imageSegmenter, ImageProcessor imageProcessor, ImageAnalysis imageAnalysis,
-            ExecutorService executorService, OverlayView overlayView, int mScreenWidth, int mScreenHeight,DrawStar imageDraw) {
+            ExecutorService executorService, OverlayView overlayView, int mScreenWidth, int mScreenHeight,
+            DrawStar imageDraw) {
         this.imageSegmenter = imageSegmenter;
         this.imageProcessor = imageProcessor;
         this.imageAnalysis = imageAnalysis;
         this.executorService = executorService;
         this.overlayView = overlayView;
+        overlayView.restart();
         this.mScreenWidth = mScreenWidth;
         this.mScreenHeight = mScreenHeight;
         this.imageDraw = imageDraw;
@@ -52,21 +58,27 @@ class FrameProcessor implements Runnable {
         imageAnalysis.setAnalyzer(executorService, new ImageAnalysis.Analyzer() {
             @Override
             public void analyze(ImageProxy imageProxy) {
+                Bitmap bitmap = imageProxy.toBitmap();
+                // 创建一个新的Bitmap并调整大小
+                float scaleFactor = Math.max(mScreenWidth * 1f / bitmap.getWidth(),
+                        mScreenHeight * 1f / bitmap.getHeight());
+                int scaleWidth = (int) (bitmap.getWidth() * scaleFactor);
+                int scaleHeight = (int) (bitmap.getHeight() * scaleFactor);
+                Bitmap scaleBitmap = Bitmap.createScaledBitmap(bitmap, scaleWidth, scaleHeight, false);
+                Bitmap croppedBitmap = Bitmap.createBitmap(scaleBitmap, (scaleWidth - mScreenWidth) / 2,
+                        (scaleHeight - mScreenHeight) / 2, mScreenWidth, mScreenHeight);
                 // 第一次执行帧，进行图像分割
                 if (isfirst) {
                     TensorImage tensorImage = new TensorImage(DataType.FLOAT32);
-                    Bitmap bitmap = imageProxy.toBitmap();
+                    imageFlow.setBitmap_0(croppedBitmap);
                     tensorImage.load(bitmap);
                     TensorImage tensorImage_ = imageProcessor.process(tensorImage);
-                    Log.d("Button", "开始预测...");
                     results = imageSegmenter.segment(tensorImage_);
-                    Log.d("Button", "预测完毕");
-                    // results即为预测结果
                     // 设置标志位
                     isfirst = false;
-                }
-                // 图像分割完毕后，获取图像分割结果并开始绘制
-                else {
+                } else {
+                    imageFlow.setBitmap_1(croppedBitmap);
+                    overlayView.setOffset(imageFlow.opticalFlow());
                     overlayView.setBitmap(imageDraw.drawStar(RegionProcess.getMask(results, mScreenWidth,
                             mScreenHeight), mScreenWidth, mScreenHeight));
                 }
