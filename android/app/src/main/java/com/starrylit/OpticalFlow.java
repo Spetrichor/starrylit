@@ -41,7 +41,7 @@ public class OpticalFlow {
         }
         this.bitmap_1 = bitmap;
     }
-
+    
     public int[] opticalFlow() {
         Mat gray1 = new Mat();
         Mat gray2 = new Mat();

@@ -34,6 +34,7 @@ public class OverlayView extends View {
         offset[1] = 0;
         x = 0f;
         y = 0f;
+        Log.d("OverlayView", "restart");
     }
 
     @Override

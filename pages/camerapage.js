@@ -106,7 +106,7 @@ const App = () => {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Button title="启动相机预览" onPress={onPress} />
-      <Button title="获取存储权限" onPress={onPress_c} />
+      <Button title="选择图片" onPress={onPress_c} />
     </View>
   );
 };
