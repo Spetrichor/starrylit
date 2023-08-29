@@ -1,79 +1,31 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Starrylit
+## 一个简单的安卓APP
+### 用于在天空中进行图像的绘制
+---
 
-# Getting Started
+> 作者第一次接触移动开发，整个项目均由本人独立完成。
+> 目前软件还有极大的优化空间，具体请见待做事项。😊
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+####待完成
+- [ ] 优化光流法计算相机偏移量
+- [ ] 优化图像绘制算法，提高图像绘制帧率，减少卡顿
+- [ ] 完成前端UI设计
+- [ ] 完成后端服务器搭建
+- [ ] 实现前后端通信与用户身份验证
+- [ ] 重构安卓原生代码
 
-## Step 1: Start the Metro Server
+####技术栈
+- React Native：用于开发安卓 APP。
+- java/Kotlin：用于混合开发。
+- Tensorflow Lite：用于在安卓原生代码中进行机器学习推理。
+- OpenCV For Android：用于在安卓原生代码中进行图像处理。
+- Nginx：用作服务器端的 Web 服务器。
+- Flask：用作服务器端的 Web 框架。
+- PyTorch：用于训练深度学习模型。
+- DeepLabV3：用作图像分割算法。
+####APP介绍
+APP优化和UI设计完成后会贴图的orz
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
 
-To start Metro, run the following command from the _root_ of your React Native project:
-
-```bash
-# using npm
-npm start
-
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Start your Application
-
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
-
-### For Android
-
-```bash
-# using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### For iOS
-
-```bash
-# using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
-
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
-
-## Step 3: Modifying your App
-
-Now that you have successfully run the app, let's modify it.
-
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
-
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+####开发感想
+在开发本APP之前，本人完全没有接触过深度学习、移动开发、服务器搭建等知识。本次开发过程大部分时间在摸索方向，总算把APP的基本功能实现了，虽然和预期有很大差距😥（泪）。后续会逐步优化，争取能够早日上架。
